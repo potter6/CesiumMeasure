@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cesium地球</title>
+    <!-- CSS的引用 -->
+    <link href="layui-v2.4.5/css/layui.css" rel="stylesheet">
+    <link href="CSS/cesiumContainer.css" rel="stylesheet">
+    <!-- 引用Cesium -->
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Cesium.js"></script>
+    <!-- 引用jquery和ECharts -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdn.staticfile.org/echarts/5.3.0/echarts.min.js"></script>
+    <!-- JS的引用 -->
+    <script src="layui-v2.4.5/layui.all.js"></script>
+    <script src="JS/Cesium-measure.js"></script>
+    <script src="JS/Cesium-Button-Function.js"></script>
+    <script src="JS/ECharts-Draw.js"></script>
+    <script src="JS/Data-Import.js"></script>
+    <script src="JS/ChoosePoints.js"></script>
+    <script src="DataStructure/ClickedPoints.js"></script>
+    <script src="Calculation/CoorTran.js"></script>
+    <script src="Calculation/CalcCrossSection.js"></script>
+
+</head>
+
+<body>
+    <div id="cesiumContainer"></div>
+    <div class="layui-card">
+        <div class="layui-card-header" style="color:gold">量测面板</div>
+        <div class="layui-card-body">
+            <div style="color: deeppink;">量测:
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">不贴地</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">空间距离</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">空间面积</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">三角量测</button>
+                <button type="button" class="layui-btn layui-btn-primary layui-btn-sm">清除量测</button>
+            </div>
+            <br>
+            <div style="color: deeppink;">选点:
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">点云1</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">点云2</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black" onclick="Start()" id="startButton">开始选点</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black" onclick="Cancel()" id="cancelButton">结束选点</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">横断面线</button>
+            </div>
+            <br>
+            <div style="color: deeppink;">参数:
+                <input style="width: 150px;" class="layui-btn layui-btn-sm" type="file" id="fileInput" onchange="handleFileUpload(event)">
+                <tr>
+                    <label style="color: black;">采样间隔</label>
+                    <td>
+                        <select class="Select" id="SamplingInterval" style="width: 40px;">
+                            <option value=0 selected>5</option>
+                            <option value=1>10</option>
+                            <option value=2>15</option>
+                            <option value=3>20</option>
+                            <option value=4>25</option>
+                            <option value=5>30</option>
+                        </select>
+                    </td>
+                </tr>
+                <label style="color:black;">m  横断面长度：</label>
+                <input type="text" id="SectionL" value="300" style="width: 30px;">
+                <label style="color:black;">m   </label>
+                <label style="color:black;">设计高程：</label>
+                <input type="text" id="DesignHeight" value="10" style="width: 30px;">
+                <label style="color:black;">m</label>
+                <button type="button" class="layui-btn layui-btn-sm" style="color: black">选择完毕</button>
+            </div>
+        </div>
+
+        <div class="layui-card-body">
+            <div style="color: deeppink;">画图:
+                <button type="button" class="layui-btn layui-btn-sm" style="color:black ">选点画图</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color:black ">纵断面</button>
+                <button type="button" class="layui-btn layui-btn-sm" style="color:black ">横断面</button>
+            </div>
+            <br>
+            <div id="chartModal" style="display: none;">
+                <div id="chartContainer" style="width: 600px; height: 400px;"></div>
+                <button class="layui-btn layui-btn-sm" style="color:black" onclick="closeChartModal()">关闭</button>
+            </div>
+        </div>
+
+        <script src="JS/Cesium-Initialize.js"></script>
+
+        <script>
+            tilesets.readyPromise.then(function(tileset) {
+                //开局空降
+                // viewer.flyTo(tileset)
+
+                $('.layui-card-body button').on('click', function() {
+                    let text = $(this).text()
+                    if (text) {
+                        switch (text) {
+                            case '不贴地':
+                                clampToGround = false;
+                                break;
+                            case '空间距离':
+                                measure.drawLineMeasureGraphics({
+                                    clampToGround: clampToGround,
+                                    callback: () => {}
+                                });
+                                break;
+                            case '空间面积':
+                                measure.drawAreaMeasureGraphics({
+                                    clampToGround: clampToGround,
+                                    callback: () => {}
+                                });
+                                break;
+                            case '三角量测':
+                                measure.drawTrianglesMeasureGraphics({
+                                    callback: () => {}
+                                });
+                                break;
+                            case '清除量测':
+                                measure._drawLayer.entities.removeAll();
+                                ClearSelection();
+                                break;
+                            case '点云2':
+                                backModel();
+                                break;
+                            case '点云1':
+                                loadPointCloud();
+                                break;
+                            case '横断面线':
+                                DrawHeng();
+                                break;
+                            case '横断面':
+                                DuanDraw();
+                                break;
+                            case '纵断面':
+                                EchartsDraw();
+                                break;
+                            case '断面图导入':
+                                ChartPlot();
+                                break;
+                            case '选择完毕':
+                                if (document.getElementById("SectionL").value || document.getElementById("SamplingInterval").value == "") {
+                                    alert('导入数据完成，可以开始绘制');
+                                } else {
+                                    alert('数据输入不完整，请检查');
+                                }
+                                break;
+                            case '选点画图':
+                                ChoosePointPlot();
+                                break;
+                        }
+                    }
+                })
+            })
+        </script>
+
+</body>
+
+</html>
