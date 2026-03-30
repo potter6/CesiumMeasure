@@ -1,5 +1,5 @@
 // Cesium官网
-Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MmY5NGYxNy1lNzA0LTRhODQtYjlhNy0wNTdmNDUzN2FlMGEiLCJpZCI6MTIwNzU1LCJpYXQiOjE3MTA2NDMxMjh9.5YdXsEMd2CLNn1U920vXi0ZxvG2EnPk0zcbqjd_MutU";
+Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4NjY4OWRhZi1iMzgxLTQ0M2ItYmVmMC1lNzYwY2Q3OTYxYzMiLCJpZCI6MTIwNzU1LCJpYXQiOjE3NzQ4NTg5MDB9.Hx6p5uu3ZpHzPK3v1R4rCCMY3GNm0wFSB8tXzI1VW-0";
 
 // Cesium地球的相关设置
 const viewer = new Cesium.Viewer(cesiumContainer, {
